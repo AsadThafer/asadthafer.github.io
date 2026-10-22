@@ -32,3 +32,18 @@ nav a{transition:color .2s}.timeline article:hover{border-color:#458d86;backgrou
 .project-visual{position:relative}.project-visual::after{content:'ILLUSTRATIVE DEMO · PRIVACY SAFE';position:absolute;bottom:15px;right:17px;background:#081a28df;border:1px solid #7a9eaa75;color:#d3eceb;padding:6px 9px;border-radius:7px;font-size:9px;font-weight:800;letter-spacing:1px;pointer-events:none}
 .project-gallery .shot-button{transition:transform .25s ease,background .25s ease,border-color .25s ease}.project-gallery .shot-button:hover{transform:translateY(-3px)}
 @media(prefers-reduced-motion:reduce){.social-prominent a,.project-gallery .shot-button{transition:none}.social-prominent a:hover,.project-gallery .shot-button:hover{transform:none}}
+
+/* Respect the hidden attribute on certificate action links. */
+.certificate-dialog .btn[hidden] { display: none !important; }
+
+.social-prominent a {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.social-prominent a svg {
+    width: 19px;
+    height: 19px;
+    flex-shrink: 0;
+}

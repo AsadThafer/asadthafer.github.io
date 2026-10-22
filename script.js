@@ -20,8 +20,52 @@ const grid=document.getElementById('cert-grid');function render(filter='all'){
  grid.innerHTML=allCredentials.filter(c=>filter==='all'||(filter==='Additional'?extraCredentials.includes(c):c.issuer===filter)).map(c=>`<article class="cert ${c.featured?'featured':''}"><div class="cert-top"><span class="issuer">${c.issuer}</span><span class="arrow">↗</span></div><button class="cert-open" type="button" aria-label="Preview ${c.code} certificate"><div class="cert-preview">${c.image?`<img src="${c.image}" alt="${c.code} certificate preview" loading="lazy" onerror="this.remove()">`:''}<span class="preview-placeholder">${c.code}</span></div><strong class="cert-code">${c.code}</strong><h3>${c.title}</h3><span class="verify">Preview certificate ↗</span></button></article>`).join('');
  grid.querySelectorAll('.cert-open').forEach((button,i)=>button.addEventListener('click',()=>openCertificate(allCredentials.filter(c=>filter==='all'||(filter==='Additional'?extraCredentials.includes(c):c.issuer===filter))[i])));
 }
-function openCertificate(c){const dialog=document.getElementById('certificate-dialog');document.getElementById('dialog-title').textContent=c.code+' — '+c.title;const frame=document.getElementById('certificate-frame');const fallback=document.getElementById('certificate-fallback');frame.replaceChildren();fallback.textContent='';if(c.image){const img=document.createElement('img');img.src=c.image;img.alt=c.code+' certificate';frame.append(img)}else if(c.url.toLowerCase().includes('.pdf')){const embed=document.createElement('iframe');embed.src=c.url;embed.title=c.code+' certificate PDF';embed.loading='lazy';frame.append(embed);fallback.textContent='If the PDF does not load, use Open original.'}else{fallback.textContent='A local certificate preview is not available yet. Use Open original to view the verified credential.'}const link=document.getElementById('certificate-original');link.href=c.url;link.textContent=c.url.startsWith('assets/')?'Open full PDF ↗':'Verify credential ↗';const pdfLink=document.getElementById('certificate-pdf');pdfLink.hidden=!c.pdf; if(c.pdf)pdfLink.href=c.pdf;dialog.showModal()}
-document.getElementById('dialog-close').addEventListener('click',()=>document.getElementById('certificate-dialog').close());document.getElementById('certificate-dialog').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
+function openCertificate(c) {
+  const dialog = document.getElementById('certificate-dialog');
+  document.getElementById('dialog-title').textContent = c.code + ' — ' + c.title;
+  const frame = document.getElementById('certificate-frame');
+  const fallback = document.getElementById('certificate-fallback');
+  const originalLink = document.getElementById('certificate-original');
+  const fullLink = document.getElementById('certificate-pdf');
+
+  // Clear the previous certificate completely before showing another one.
+  frame.replaceChildren();
+  fallback.textContent = '';
+  fullLink.hidden = true;
+  fullLink.removeAttribute('href');
+
+  if (c.image) {
+    const img = document.createElement('img');
+    img.src = c.image;
+    img.alt = c.code + ' certificate';
+    frame.append(img);
+  } else if (c.pdf || (c.url && /\.pdf(?:[?#]|$)/i.test(c.url))) {
+    const embed = document.createElement('iframe');
+    embed.src = c.pdf || c.url;
+    embed.title = c.code + ' certificate PDF';
+    embed.loading = 'lazy';
+    frame.append(embed);
+    fallback.textContent = 'If the PDF does not load, use Open original.';
+  } else {
+    fallback.textContent = 'A preview is not available. Use Open original to view the certificate.';
+  }
+
+  // PDFs use their local PDF; image-only certificates open the full image.
+  const fullFile = c.pdf || (!c.pdf && c.image ? c.image : null);
+  if (fullFile) {
+    fullLink.href = fullFile;
+    fullLink.textContent = /\.pdf(?:[?#]|$)/i.test(fullFile)
+      ? 'Open full PDF ↗'
+      : 'Open full image ↗';
+    fullLink.hidden = false;
+  }
+
+  originalLink.href = c.url;
+  originalLink.textContent = c.url.startsWith('assets/')
+    ? 'Open original PDF ↗'
+    : 'Verify credential ↗';
+  dialog.showModal();
+}document.getElementById('dialog-close').addEventListener('click',()=>document.getElementById('certificate-dialog').close());document.getElementById('certificate-dialog').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 render();document.querySelectorAll('[data-filter]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-filter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');render(b.dataset.filter)}));document.getElementById('year').textContent=new Date().getFullYear();const menu=document.querySelector('.menu'),nav=document.querySelector('#nav');menu.addEventListener('click',()=>{const open=nav.classList.toggle('open');menu.setAttribute('aria-expanded',String(open))});nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{nav.classList.remove('open');menu.setAttribute('aria-expanded','false')}));
 
 // Keep a subtle selection only after a certificate is opened.
